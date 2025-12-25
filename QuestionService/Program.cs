@@ -6,6 +6,12 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
+builder.Services.AddAuthentication()
+    .AddKeycloakJwtBearer(serviceName: "keycloak", realm: "overflow", options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.Audience = "overflow";
+    });
 
 var app = builder.Build();
 
@@ -14,8 +20,6 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-app.UseAuthorization();
 
 app.MapControllers();
 
