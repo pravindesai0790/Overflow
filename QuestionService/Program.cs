@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using QuestionService.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -12,6 +15,7 @@ builder.Services.AddAuthentication()
         options.RequireHttpsMetadata = false;
         options.Audience = "overflow";
     });
+builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb"); // it will make connection to the database. no need of connectionstring Aspire will take care of it.
 
 var app = builder.Build();
 
@@ -24,5 +28,18 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 
 app.MapDefaultEndpoints();
+
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider; // it provide access to all services available inside our app including DBContext
+try
+{
+    var context = services.GetRequiredService<QuestionDbContext>();
+    await context.Database.MigrateAsync();
+}
+catch (Exception e)
+{
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(e, "An error occurred while migrating or seeding the DB.");
+}
 
 app.Run();
