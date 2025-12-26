@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using QuestionService.Data;
 using QuestionService.DTOs;
 using QuestionService.Models;
@@ -15,6 +16,13 @@ public class QuestionsController(QuestionDbContext db) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Question>> CreateQuestion(CreateQuestionDto questionDetails)
     {
+        var validTags = await db.Tags.Where(x => questionDetails.Tags.Contains(x.Slug)).ToListAsync();
+        
+        var missingTags = questionDetails.Tags.Except(validTags.Select(x => x.Slug).ToList()).ToList();
+
+        if (missingTags.Count != 0)
+            return BadRequest($"Invalid tags: {string.Join(", ", missingTags)}");
+        
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var name = User.FindFirstValue("name");
         
