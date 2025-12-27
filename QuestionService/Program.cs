@@ -9,13 +9,18 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
+
+// it will make connection with keycloak service with configuration.
 builder.Services.AddAuthentication()
     .AddKeycloakJwtBearer(serviceName: "keycloak", realm: "overflow", options =>
     {
         options.RequireHttpsMetadata = false;
         options.Audience = "overflow";
     });
-builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb"); // it will make connection to the database. no need of connectionstring Aspire will take care of it.
+
+// it will make connection to the postgres database.
+// no need of connectionstring Aspire will take care of it.
+builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb"); 
 
 var app = builder.Build();
 
@@ -30,7 +35,7 @@ app.MapControllers();
 app.MapDefaultEndpoints();
 
 using var scope = app.Services.CreateScope();
-var services = scope.ServiceProvider; // it provide access to all services available inside our app including DBContext
+var services = scope.ServiceProvider; // it provides access to all services available inside our app including DBContext
 try
 {
     var context = services.GetRequiredService<QuestionDbContext>();

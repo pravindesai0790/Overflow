@@ -1,8 +1,29 @@
+using Typesense.Setup;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.AddServiceDefaults();
+
+// Configuration of typesense resource
+// it will get typesense uri which is created by aspire host in search-svc container (i.e: services__typesense__typesense__0)
+// This is the way how we can create connection between resources which doesn't have Aspire host integration
+var typesenseUri = builder.Configuration["services:typesense:typesense:0"];
+if(string.IsNullOrEmpty(typesenseUri))
+    throw new InvalidOperationException("Typesense URI not found in config");
+
+var uri = new Uri(typesenseUri);
+// Add typesense service with configuration to application which is provided by Typesense nuget pkg
+// this will be available for dependency injection in our application
+builder.Services.AddTypesenseClient(config =>
+{
+    config.ApiKey = "xyz"; // it is configured in AppHost 
+    config.Nodes = new List<Node>
+    {
+        new(uri.Host, uri.Port.ToString(), uri.Scheme)
+    };
+});
 
 var app = builder.Build();
 
@@ -12,28 +33,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-    {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast");
+app.MapDefaultEndpoints();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
