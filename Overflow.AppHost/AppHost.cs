@@ -14,14 +14,20 @@ var postgres = builder.AddPostgres("postgres", port: 5432)
 // it will create postgres DB as questionDB 
 var questionDb = postgres.AddDatabase("questionDb"); 
 
+var rabbitmq = builder.AddRabbitMQ("messaging")
+    .WithDataVolume("rabbitmq-data")
+    .WithManagementPlugin(port: 15672);
+
 // question service configuration with keycloak service and postgres DB 
 var questionService = builder.AddProject<Projects.QuestionService>("question-svc")
     .WithReference(keycloak) // add reference to Keycloak service so thet questionservice can know how to locate the Keycloak service.
     // add reference to postgres container so thet questionservice can know how to locate the DB and resources.
     // it also manages connection string.
     .WithReference(questionDb) 
+    .WithReference(rabbitmq)
     .WaitFor(keycloak) // wait to start keycloak service to start before starting questionservice 
-    .WaitFor(questionDb);
+    .WaitFor(questionDb)
+    .WaitFor(rabbitmq);
 
 // It will get the secret stored using "dotnet user-secrets" in AppHost
 var typesenseApiKey = builder.AddParameter("typesense-api-key", secret: true);
@@ -40,6 +46,8 @@ var typesenseContainer = typesense.GetEndpoint("typesense");
 var searchService = builder.AddProject<Projects.SearchService>("search-svc") 
     .WithEnvironment("typesense-api-key", typesenseApiKey) // passing typesenseApiKey to search service as environment variable.
     .WithReference(typesenseContainer)
-    .WaitFor(typesense);
+    .WithReference(rabbitmq)
+    .WaitFor(typesense)
+    .WaitFor(rabbitmq);
 
 builder.Build().Run();
