@@ -6,13 +6,14 @@ using Microsoft.EntityFrameworkCore;
 using QuestionService.Data;
 using QuestionService.DTOs;
 using QuestionService.Models;
+using QuestionService.Services;
 using Wolverine;
 
 namespace QuestionService.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class QuestionsController(QuestionDbContext db, IMessageBus bus) : ControllerBase
+public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagService tagService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<Question>>> GetQuestions(string? tags)
@@ -45,12 +46,14 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus) : Contro
     [HttpPost]
     public async Task<ActionResult<Question>> CreateQuestion(CreateQuestionDto questionDetails)
     {
-        var validTags = await db.Tags.Where(x => questionDetails.Tags.Contains(x.Slug)).ToListAsync();
-        
-        var missingTags = questionDetails.Tags.Except(validTags.Select(x => x.Slug).ToList()).ToList();
-
-        if (missingTags.Count != 0)
-            return BadRequest($"Invalid tags: {string.Join(", ", missingTags)}");
+        // var validTags = await db.Tags.Where(x => questionDetails.Tags.Contains(x.Slug)).ToListAsync();
+        //
+        // var missingTags = questionDetails.Tags.Except(validTags.Select(x => x.Slug).ToList()).ToList();
+        //
+        // if (missingTags.Count != 0)
+        //     return BadRequest($"Invalid tags: {string.Join(", ", missingTags)}");
+        if(!await tagService.AreTagsValidAsync(questionDetails.Tags))
+            return BadRequest("Invalid tags");
         
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var name = User.FindFirstValue("name");
@@ -85,12 +88,8 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus) : Contro
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId != question.AskerId) return Forbid();
         
-        var validTags = await db.Tags.Where(x => updateDetails.Tags.Contains(x.Slug)).ToListAsync();
-        
-        var missingTags = updateDetails.Tags.Except(validTags.Select(x => x.Slug).ToList()).ToList();
-
-        if (missingTags.Count != 0)
-            return BadRequest($"Invalid tags: {string.Join(", ", missingTags)}");
+        if(!await tagService.AreTagsValidAsync(updateDetails.Tags))
+            return BadRequest("Invalid tags");
         
         question.Title = updateDetails.Title;
         question.Content = updateDetails.Content;

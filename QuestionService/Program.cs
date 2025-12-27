@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using QuestionService.Data;
+using QuestionService.Services;
 using Wolverine;
 using Wolverine.RabbitMQ;
 
@@ -13,6 +14,8 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<TagService>();
 
 // it will make connection with keycloak service with configuration.
 builder.Services.AddAuthentication()
