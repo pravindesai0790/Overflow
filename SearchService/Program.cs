@@ -1,3 +1,5 @@
+using SearchService.Data;
+using Typesense;
 using Typesense.Setup;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,5 +41,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapDefaultEndpoints();
+
+// service locator pattern to get typesense service and call static method to create typesense collection schema.
+ using var scope = app.Services.CreateScope();
+var client = scope.ServiceProvider.GetRequiredService<ITypesenseClient>();
+await SearchInitializer.EnsureIndexExists(client);
 
 app.Run();
