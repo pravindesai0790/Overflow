@@ -1,14 +1,41 @@
 using System.Text.RegularExpressions;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using SearchService.Data;
 using SearchService.Models;
 using Typesense;
 using Typesense.Setup;
+using Wolverine;
+using Wolverine.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
+
+// this is going to setup Open telemetry for RabbitMQ via Wolverine.
+// So it's going to publish the traces so that it will be able to see what's going on between our different services
+builder.Services.AddOpenTelemetry().WithTracing(traceProviderBuilder =>
+{
+    traceProviderBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault()
+            .AddService(builder.Environment.ApplicationName))
+        .AddSource("Wolverine");
+});
+
+// Integrate Wolverine into our application
+builder.Host.UseWolverine(opts =>
+{
+    opts.UseRabbitMqUsingNamedConnection("messaging").AutoProvision();
+    // It listens from exchange named: questions and the service that's listening from the exchange is search
+    opts.ListenToRabbitQueue("questions.search", cfg =>
+    {
+        // It will bind queue named: "questions.search" in questions exchange.
+        // So when message is published to questions exchange than it will bind it to "questions.search" queue.
+        // Then handler(method we have write in application) will pick up messages from this queue and process it
+        cfg.BindExchange("questions"); 
+    }); 
+});
 
 /* Configuration of typesense resource
 it will get typesense uri which is created by aspire host in search-svc container (i.e: services__typesense__typesense__0)
