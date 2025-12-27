@@ -1,4 +1,6 @@
+using System.Text.RegularExpressions;
 using SearchService.Data;
+using SearchService.Models;
 using Typesense;
 using Typesense.Setup;
 
@@ -42,8 +44,40 @@ if (app.Environment.IsDevelopment())
 
 app.MapDefaultEndpoints();
 
+// root parameter search endpoint
+app.MapGet("/search", async (string query, ITypesenseClient client) =>
+{
+    // [aspire]something
+    string? tag = null;
+    var tagMatch = Regex.Match(query, @"\[(.*?)\]"); // to get text inside [square bracket]
+    if (tagMatch.Success)
+    {
+        tag = tagMatch.Groups[1].Value; // get the value which was extracted using regex
+        query = query.Replace(tagMatch.Value, "").Trim(); // remove tag from query for further search (to make normal string)
+    }
+
+    // it will configure search parameter for query string in provided columns (i.e. title and content for below code)
+    var searchParams = new SearchParameters(query, "title,content");
+
+    if (!string.IsNullOrEmpty(tag))
+    {
+        // it will further filter by tag if it exists
+        searchParams.FilterBy = $"tags:=[{tag}]";
+    }
+
+    try
+    {
+        var result = await client.Search<SearchQuestion>("questions", searchParams);
+        return Results.Ok(result.Hits.Select(hit => hit.Document));
+    }
+    catch (Exception e)
+    {
+        return Results.Problem("Typesense search failed: ", e.Message);
+    }
+});
+
 // service locator pattern to get typesense service and call static method to create typesense collection schema.
- using var scope = app.Services.CreateScope();
+using var scope = app.Services.CreateScope();
 var client = scope.ServiceProvider.GetRequiredService<ITypesenseClient>();
 await SearchInitializer.EnsureIndexExists(client);
 
