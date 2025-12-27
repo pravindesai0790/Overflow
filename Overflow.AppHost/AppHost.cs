@@ -23,10 +23,13 @@ var questionService = builder.AddProject<Projects.QuestionService>("question-svc
     .WaitFor(keycloak) // wait to start keycloak service to start before starting questionservice 
     .WaitFor(questionDb);
 
+// It will get the secret stored using "dotnet user-secrets" in AppHost
+var typesenseApiKey = builder.AddParameter("typesense-api-key", secret: true);
+
 // It will create docker container for typesense with typesense image version 29.0 and add provide configuration with port number
 // This is the way how we can create resources which doesn't have Aspire host integration
 var typesense = builder.AddContainer("typesense", "typesense/typesense", "29.0")
-    .WithArgs("--data-dir", "/data", "--api-key", "xyz", "--enable-cors")
+    .WithArgs("--data-dir", "/data", "--api-key", typesenseApiKey, "--enable-cors")
     .WithVolume("typesense-data", "/data")
     .WithHttpEndpoint(8108, 8108, name: "typesense");
 
@@ -35,6 +38,7 @@ var typesenseContainer = typesense.GetEndpoint("typesense");
 
 // search service configuration with typesense
 var searchService = builder.AddProject<Projects.SearchService>("search-svc") 
+    .WithEnvironment("typesense-api-key", typesenseApiKey) // passing typesenseApiKey to search service as environment variable.
     .WithReference(typesenseContainer)
     .WaitFor(typesense);
 
