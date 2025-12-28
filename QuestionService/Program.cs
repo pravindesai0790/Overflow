@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -16,6 +17,11 @@ builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<TagService>();
+
+// To handle circular dependency in entity framework core c#
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 // it will make connection with keycloak service with configuration.
 builder.Services.AddAuthentication()
