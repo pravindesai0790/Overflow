@@ -19,9 +19,13 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: "${KEYCLOAK_PASSWORD}"
       KC_HEALTH_ENABLED: "true"
       KC_FEATURES: "opentelemetry"
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://production-dashboard:18889"
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
       OTEL_SERVICE_NAME: "keycloak"
+    ports:
+      - "6001:8080"
     expose:
       - "8080"
       - "9000"
@@ -75,6 +79,8 @@ services:
       services__keycloak__http__0: "http://keycloak:8080"
       KEYCLOAK_MANAGEMENT: "http://keycloak:9000"
       services__keycloak__management__0: "http://keycloak:9000"
+      KEYCLOAK_KEYCLOAK: "keycloak://keycloak:8080"
+      services__keycloak__keycloak__0: "keycloak://keycloak:8080"
       ConnectionStrings__questionDb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=questionDb"
       QUESTIONDB_HOST: "postgres"
       QUESTIONDB_PORT: "5432"

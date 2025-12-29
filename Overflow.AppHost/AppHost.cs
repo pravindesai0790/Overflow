@@ -8,7 +8,17 @@ var compose = builder.AddDockerComposeEnvironment("production")
 #pragma warning disable ASPIRECERTIFICATES001
 var keycloak = builder.AddKeycloak("keycloak", 6001)
     .WithDataVolume("keycloak-data")
-    .WithoutHttpsCertificate();
+    /*
+     * WARNING: With HTTPS not enabled, `proxy-headers` unset, and `hostname-strict=false`, the server is running in an insecure context.
+     * Secure contexts are required for full functionality, including cross-origin cookies. Also, if you are using a proxy,
+     * requests from the proxy to the server will fail CORS checks with 403s because the wrong origin will be determined.
+     * Make sure `proxy-headers` are configured properly. Key material not provided to set up HTTPS. Please configure your keys/certificates,
+     * or if HTTPS access is not needed see the `http-enabled` option. If you meant to start the server in development mode, see the `start-dev` command.
+     */
+    .WithEnvironment("KC_HTTP_ENABLED", "true")  // Docker publishing error for https 
+    .WithEnvironment("KC_HOSTNAME_STRICT", "false")
+    .WithEndpoint(6001, 8080, "keycloak", isExternal: true) // to access keycloak management externally in browser
+    .WithoutHttpsCertificate(); // to remove unhealthy status from Aspire Host 
 #pragma warning restore ASPIRECERTIFICATES001
 
 // it will create postgres service and PgAdmin in docker container with help of Aspire Host postgres integration
