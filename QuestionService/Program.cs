@@ -1,9 +1,13 @@
+using System.Net.Sockets;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Polly;
 using QuestionService.Data;
 using QuestionService.Services;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 using Wolverine;
 using Wolverine.RabbitMQ;
 
@@ -44,7 +48,31 @@ builder.Services.AddOpenTelemetry().WithTracing(traceProviderBuilder =>
         .AddSource("Wolverine");
 });
 
-// Integrate Wolverine into our application
+// this will catch message broker exception (not starting) and retry to start it as configured 
+var retryPolicy = Policy
+    .Handle<BrokerUnreachableException>()
+    .Or<SocketException>()
+    .WaitAndRetryAsync(
+        retryCount: 5,
+        retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, timeSpan, retryCount) =>
+        {
+            Console.WriteLine($"Retry attempt {retryCount} failed. Retrying in " + $"{timeSpan.Seconds} seconds...");
+        });
+
+// retry code if messaging service (i.e, RabbitMQ) fail to start before we start executing Wolverine integration
+await retryPolicy.ExecuteAsync(async () =>
+{
+    var endpoint = builder.Configuration.GetConnectionString("messaging")
+                   ?? throw new InvalidOperationException("messaging (RabbitMQ) connection string not found...");
+
+    var factory = new ConnectionFactory
+    {
+        Uri = new Uri(endpoint)
+    };
+    await using var connectio = await factory.CreateConnectionAsync();
+});
+
+// Integrate Wolverine into our application. it will create exchanges and queue in RabbitMQ (It is dependent on RabbitMQ to start that why above policy is added)
 builder.Host.UseWolverine(opts =>
 {
     opts.UseRabbitMqUsingNamedConnection("messaging").AutoProvision();
