@@ -34,6 +34,10 @@ services:
         target: "/opt/keycloak/data"
         source: "keycloak-data"
         read_only: false
+      - type: "bind"
+        target: "/opt/keycloak/data/import"
+        source: "${KEYCLOAK_BINDMOUNT_0}"
+        read_only: true
     networks:
       - "aspire"
   postgres:
