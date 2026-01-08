@@ -22,19 +22,12 @@ builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<TagService>();
+builder.Services.AddKeyCloakAuthentication(); // using extension method to add common code to handle Authentication configuration.
 
 // To handle circular dependency in entity framework core c#
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-
-// it will make connection with keycloak service with configuration.
-builder.Services.AddAuthentication()
-    .AddKeycloakJwtBearer(serviceName: "keycloak", realm: "overflow", options =>
-    {
-        options.RequireHttpsMetadata = false;
-        options.Audience = "overflow";
-    });
 
 // it will make connection to the postgres database.
 // no need of connectionstring Aspire will take care of it.
