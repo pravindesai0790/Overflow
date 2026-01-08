@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Common;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using SearchService.Data;
@@ -14,19 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 
-// this is going to setup Open telemetry for RabbitMQ via Wolverine.
-// So it's going to publish the traces so that it will be able to see what's going on between our different services
-builder.Services.AddOpenTelemetry().WithTracing(traceProviderBuilder =>
-{
-    traceProviderBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault()
-            .AddService(builder.Environment.ApplicationName))
-        .AddSource("Wolverine");
-});
-
 // Integrate Wolverine into our application
-builder.Host.UseWolverine(opts =>
+// using extension method to add common code to handle messaging(RabbitMq) service.
+await builder.UseWolverineWithRabbitMqAsync(opts =>
 {
-    opts.UseRabbitMqUsingNamedConnection("messaging").AutoProvision();
     // It listens from exchange named: questions and the service that's listening from the exchange is search
     opts.ListenToRabbitQueue("questions.search", cfg =>
     {
@@ -35,6 +27,7 @@ builder.Host.UseWolverine(opts =>
         // Then handler(method we have write in application) will pick up messages from this queue and process it
         cfg.BindExchange("questions"); 
     }); 
+    opts.ApplicationAssembly = typeof(Program).Assembly; // Wolverine is going to go looking in this project the question service for any handlers.
 });
 
 /* Configuration of typesense resource

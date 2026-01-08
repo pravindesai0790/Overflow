@@ -52,17 +52,20 @@ var questionService = builder.AddProject<Projects.QuestionService>("question-svc
 // It will get the secret stored using "dotnet user-secrets" in AppHost
 //var typesenseApiKey = builder.AddParameter("typesense-api-key", secret: true);
 
-var typesenseApiKey = builder.Environment.IsDevelopment()
-    ? builder.Configuration["Parameters:typesense-api-key"] // it will get it from user secrets directly
-      ?? throw new InvalidOperationException("Could not get typesense api key")
-    : "${TYPESENSE_API_KEY}"; // if we're running in docker
+var typesenseApiKey = builder.AddParameter("typesense-api-key", secret: true);
+
+// var typesenseApiKey = builder.Environment.IsDevelopment()
+//     ? builder.Configuration["Parameters:typesense-api-key"] // it will get it from user secrets directly
+//       ?? throw new InvalidOperationException("Could not get typesense api key")
+//     : "${TYPESENSE_API_KEY}"; // if we're running in docker
 
 // It will create docker container for typesense with typesense image version 29.0 and add provide configuration with port number
 // This is the way how we can create resources which doesn't have Aspire host integration
 var typesense = builder.AddContainer("typesense", "typesense/typesense", "29.0")
-    .WithArgs("--data-dir", "/data", "--api-key", typesenseApiKey, "--enable-cors")
     .WithVolume("typesense-data", "/data")
     .WithEnvironment("TYPESENSE_API_KEY", typesenseApiKey) // this will make available inside docker compose file for the typesense service
+    .WithEnvironment("TYPESENSE_DATA_DIR", "/data")
+    .WithEnvironment("TYPESENSE_ENABLE_CORS", "true")
     .WithHttpEndpoint(8108, 8108, name: "typesense");
 
 // it will get the typesense container refence to add later it to our project.
