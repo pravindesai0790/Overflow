@@ -2,6 +2,8 @@
 import Link from "next/dist/client/link";
 import {Chip} from "@heroui/chip";
 import {Avatar} from "@heroui/avatar";
+import clsx from "clsx";
+import {CheckIcon} from "@heroicons/react/24/outline";
 
 type Props = {
     question: Question;
@@ -10,9 +12,25 @@ type Props = {
 export default function QuestionCard({question}: Props) {
     return (
         <div className='flex gap-6 px-6'>
-            <div className='flex flex-col text-sm gap-3 min-w-24'>
+            <div className='flex flex-col items-end text-sm gap-3 min-w-24'>
                 <div>{question.votes} {question.votes === 1 ? 'vote' : 'votes'}</div>
-                <div>{question.answerCount} {question.answerCount === 1 ? 'answer' : 'answers'}</div>
+                <div
+                    className={clsx('flex justify-end rounded', {
+                        'border-2 border-success': question.answerCount > 0,
+                        'bg-success-600 text-default-50': question.hasAcceptedAnswer
+                    })}
+                >
+                    <span
+                        className={clsx('flex items-center gap-2', {
+                            'p-1': question.answerCount > 0,
+                        })}
+                    >
+                        {question.hasAcceptedAnswer && (
+                            <CheckIcon className='h-4 w-4' strokeWidth={4}/>
+                        )}
+                        {question.answerCount} {question.answerCount === 1 ? 'answer' : 'answers'}
+                    </span>
+                </div>
                 <div>{question.viewCount} {question.viewCount === 1 ? 'view' : 'views'}</div>
             </div>
             <div className='flex flex-1 justify-between min-h-32'>
