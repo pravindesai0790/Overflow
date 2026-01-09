@@ -23,6 +23,8 @@ var keycloak = builder.AddKeycloak("keycloak", 6001)
     .WithEnvironment("KC_HTTP_ENABLED", "true") // Docker publishing error for https 
     .WithEnvironment("KC_HOSTNAME_STRICT", "false")
     .WithEndpoint(6001, 8080, "keycloak", isExternal: true) // to access keycloak management externally in browser
+    .WithEnvironment("VIRTUAL_HOST", "id.overflow.local") // environment variable to our services which need extrnal access. "id.overflow.local" configred in our host file in window
+    .WithEnvironment("VIRTUAL_PORT", "8080") // routing our requrest coming from port 80 (nginx reverse proxy) effectively to the gateway (i.e, 8080)
     .WithoutHttpsCertificate(); // to remove unhealthy status from Aspire Host  
 #pragma warning restore ASPIRECERTIFICATES001
 
@@ -90,7 +92,17 @@ var yarp = builder.AddYarp("gateway")
     })
     .WithEnvironment("ASPNETCORE_URLS", "http://*:8001")
     .WithEndpoint(port: 8001, targetPort: 8001, scheme: "http", name: "gateway", isExternal: true) 
-    ?.WithoutHttpsCertificate();
+    .WithEnvironment("VIRTUAL_HOST", "api.overflow.local") // environment variable to our services which need extrnal access. "api.overflow.local" configred in our host file in window
+    .WithEnvironment("VIRTUAL_PORT", "8001") // routing our requrest coming from port 80 (nginx reverse proxy) effectively to the gateway (i.e, 8001)
+    .WithoutHttpsCertificate();
 #pragma warning restore ASPIRECERTIFICATES001
+
+// Configuration of nginx reverse proxy in local deployment 
+if (!builder.Environment.IsDevelopment())
+{
+    builder.AddContainer("nginx-proxy", "nginxproxy/nginx-proxy", "1.8")
+        .WithEndpoint(80, 80, "nginx", isExternal: true)
+        .WithBindMount("/var/run/docker.sock", "/tmp/docker.sock", true);
+}
 
 builder.Build().Run();
