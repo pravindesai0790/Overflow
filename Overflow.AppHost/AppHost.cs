@@ -82,6 +82,7 @@ var searchService = builder.AddProject<Projects.SearchService>("search-svc")
     .WaitFor(rabbitmq);
 
 // Configuration of a reverse proxy (gateway to API services) using YARP in Aspire
+// which will proxy requests to our individual internal services
 #pragma warning disable ASPIRECERTIFICATES001
 var yarp = builder.AddYarp("gateway")
     .WithConfiguration(yarpBuilder =>
@@ -97,7 +98,12 @@ var yarp = builder.AddYarp("gateway")
     .WithoutHttpsCertificate();
 #pragma warning restore ASPIRECERTIFICATES001
 
-// Configuration of nginx reverse proxy in local deployment 
+var webapp = builder.AddJavaScriptApp("webapp", "../webapp")
+    .WithReference(keycloak)
+    .WithHttpEndpoint(env: "PORT", port: 3000);
+
+// Configuration of nginx reverse proxy in local deployment not dev
+// which will proxy requests externally to the internal services such as keycloak and gateway services
 if (!builder.Environment.IsDevelopment())
 {
     builder.AddContainer("nginx-proxy", "nginxproxy/nginx-proxy", "1.8")
