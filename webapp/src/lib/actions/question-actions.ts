@@ -2,9 +2,17 @@
 
 import {Question} from "@/lib/types";
 
-export async function getQuestions(tags?: string): Promise<Question[]> {
+export async function getQuestions(tag?: string): Promise<Question[]> {
     let url = 'http://localhost:8001/questions';
-    if (tags) url += `?tags=${tags}`;
+    //if (tag) url += `?tags=${tag}`;
+    if (tag)
+    {
+        // Remove all '/' characters from the value
+        tag = tag.replace(/\//g, '');
+        url += `?tags=${tag}`;
+    }
+        
+        
     const response = await fetch(url);
     
     if(!response.ok) throw new Error('Failed to get data');
