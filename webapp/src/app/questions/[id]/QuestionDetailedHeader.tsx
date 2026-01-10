@@ -17,6 +17,7 @@ export default function QuestionDetailedHeader({ question }: Props) {
                     as={Link}
                     href='/questions/ask'
                     color='secondary'
+                    className='w-[20%]'
                 >
                     Ask Question
                 </Button>
