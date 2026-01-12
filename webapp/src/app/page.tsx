@@ -1,13 +1,12 @@
-import {Button} from "@heroui/button";
 import {AcademicCapIcon} from "@heroicons/react/24/solid";
 
 export default function Home() {
   return (
-    <div className='text-4xl text-red-500'>
-      <h1>Overflow app</h1>
-      <Button color='primary' endContent={<AcademicCapIcon className='size-6' />}>
-        Click me!
-      </Button>
+    <div className='flex items-center h-[calc(100vh-160px)] justify-center'>
+        <div className='flex flex-col items-center justify-center gap-5 text-5xl text-secondary font-bold'>
+            <AcademicCapIcon className="h-96 w-96" />
+            <div>Welcome to overflow!</div>
+        </div>
     </div>
   );
 }
