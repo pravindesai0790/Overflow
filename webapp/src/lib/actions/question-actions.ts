@@ -5,13 +5,7 @@ import {fetchClient} from "@/lib/fetchClient";
 
 export async function getQuestions(tag?: string) {
     let url = '/questions';
-    //if (tag) url += `?tag=${tag}`;
-    if (tag)
-    {
-        // Remove all '/' characters from the value
-        tag = tag.replace(/\//g, '');
-        url += `?tag=${tag}`;
-    }
+    if (tag) url += `?tag=${tag}`;
     return fetchClient<Question[]>(url, 'GET');
 }
 
