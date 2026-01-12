@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import {HeroUIProvider} from "@heroui/react";
+import {HeroUIProvider, ToastProvider} from "@heroui/react";
 import {ReactNode} from "react";
 import {useRouter} from "next/dist/client/components/navigation";
 import {ThemeProvider} from "next-themes";
@@ -10,6 +10,7 @@ export default function Providers({children}: {children: ReactNode}) {
     
     return (
         <HeroUIProvider navigate={router.push} className='flex flex-col h-full'>
+            <ToastProvider />
             <ThemeProvider
                 attribute='class'
                 defaultTheme='light'
