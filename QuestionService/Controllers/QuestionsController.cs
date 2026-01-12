@@ -17,13 +17,13 @@ namespace QuestionService.Controllers;
 public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagService tagService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<List<Question>>> GetQuestions(string? tags)
+    public async Task<ActionResult<List<Question>>> GetQuestions(string? tag)
     {
         var query = db.Questions.AsQueryable();
 
-        if (!string.IsNullOrEmpty(tags))
+        if (!string.IsNullOrEmpty(tag))
         {
-            query = query.Where(x => x.TagSlugs.Contains(tags));
+            query = query.Where(x => x.TagSlugs.Contains(tag));
         }
 
         return await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
