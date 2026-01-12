@@ -3,7 +3,7 @@
 import {Question} from "@/lib/types";
 import {fetchClient} from "@/lib/fetchClient";
 
-export async function getQuestions(tag?: string): Promise<Question[]> {
+export async function getQuestions(tag?: string) {
     let url = '/questions';
     //if (tag) url += `?tag=${tag}`;
     if (tag)
@@ -15,6 +15,6 @@ export async function getQuestions(tag?: string): Promise<Question[]> {
     return fetchClient<Question[]>(url, 'GET');
 }
 
-export async function getQuestionById(id: string): Promise<Question> {
+export async function getQuestionById(id: string) {
     return fetchClient<Question>(`/questions/${id}`, 'GET');
 }

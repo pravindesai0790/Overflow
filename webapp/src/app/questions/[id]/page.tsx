@@ -9,8 +9,9 @@ type Params = Promise<{id: string}>
 
 export default async function QuestionDetailedPage({params}: {params: Params}) {
     const {id} = await params;
-    const question = await getQuestionById(id);
+    const {data: question, error} = await getQuestionById(id);
     
+    if(error) throw error; // it will be captured by error boundary page in client (i.e, error.tsx page)
     if (!question) return notFound();
     
     return (
