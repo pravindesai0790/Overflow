@@ -3,6 +3,7 @@ import {AcademicCapIcon} from "@heroicons/react/24/solid";
 import {Button} from "@heroui/button";
 import ThemeToggle from "@/components/nav/ThemeToggle";
 import SearchInput from "@/components/nav/SearchInput";
+import LoginButton from "@/components/nav/LoginButton";
 
 export default function TopNav() {
     return (
@@ -22,7 +23,7 @@ export default function TopNav() {
                 <SearchInput />
                 <div className='flex basis-1/4 shrink-0 justify-end gap-3'>
                     <ThemeToggle />
-                    <Button color='secondary' variant='bordered'>Login</Button>
+                    <LoginButton />
                     <Button color='secondary'>Register</Button>
                 </div>
             </div>
