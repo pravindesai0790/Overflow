@@ -23,6 +23,14 @@ export function handleError(error: {message: string, status?: number}) {
     }
 }
 
+export function successToast(message: string, title?: string) {
+    return addToast({
+        color: 'success',
+        title: title || 'Success!',
+        description: message
+    })
+}
+
 export function fuzzyTimeAgo(date: string | Date) {
     if(isToday(date)) return 'Today';
     if(isYesterday(date)) return 'Yesterday';

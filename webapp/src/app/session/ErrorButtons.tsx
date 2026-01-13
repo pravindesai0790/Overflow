@@ -19,7 +19,7 @@ export default function ErrorButtons() {
     }
     
     return (
-        <div className='flex gap-6 items-center justify-center mt-6 w-full'>
+        <div className='flex gap-3'>
             {[400,401,403,404,500].map(code => (
                 <Button
                     onPress={() => onClick(code)}
