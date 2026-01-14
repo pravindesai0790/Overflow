@@ -6,6 +6,7 @@ import SearchInput from "@/components/nav/SearchInput";
 import LoginButton from "@/components/nav/LoginButton";
 import {getCurrentUser} from "@/lib/actions/auth-actions";
 import UserMenu from "@/components/nav/UserMenu";
+import RegisterButton from "@/components/nav/RegisterButton";
 
 export default async function TopNav() {
     const user = await getCurrentUser();
@@ -32,7 +33,7 @@ export default async function TopNav() {
                     ) : (
                         <>
                             <LoginButton />
-                            <Button color='secondary'>Register</Button>
+                            <RegisterButton />
                         </>
                     )}
                 </div>
