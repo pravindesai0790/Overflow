@@ -8,6 +8,7 @@ import {Button} from "@heroui/button";
 import {Controller, useForm} from "react-hook-form";
 import {questionSchema, QuestionSchema} from "@/lib/schemas/questionSchema";
 import {zodResolver} from "@hookform/resolvers/zod";
+import RichTextEditor from "@/components/rte/RichTextEditor";
 
 export default function QuestionForm() {
     const tags = useTagStore(state => state.tags);
@@ -37,15 +38,7 @@ export default function QuestionForm() {
             </div>
             <div className='flex flex-col gap-3 w-full'>
                 <h3 className='text-2xl font-semibold'>Body</h3>
-                <Textarea
-                    {...register('content')}
-                    className='w-full'
-                    label='Include all the information someone would need to answer your question'
-                    labelPlacement='outside-top'
-                    minRows={12}
-                    isInvalid={!!errors.content}
-                    errorMessage={errors.content?.message}
-                />
+                <RichTextEditor />
             </div>
             <div className='flex flex-col gap-3 w-full'>
                 <h3 className='text-2xl font-semibold'>Tags</h3>
