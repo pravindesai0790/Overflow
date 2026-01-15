@@ -2,7 +2,7 @@
 
 import {useTagStore} from "@/lib/useTagStore";
 import {Form} from "@heroui/form";
-import {Input, Textarea} from "@heroui/input";
+import {Input} from "@heroui/input";
 import {Select, SelectItem} from "@heroui/select";
 import {Button} from "@heroui/button";
 import {Controller, useForm} from "react-hook-form";
@@ -38,7 +38,21 @@ export default function QuestionForm() {
             </div>
             <div className='flex flex-col gap-3 w-full'>
                 <h3 className='text-2xl font-semibold'>Body</h3>
-                <RichTextEditor />
+                <Controller 
+                    control={control}
+                    name='content'
+                    render={({field: {onChange, onBlur, value}}) => (
+                        <>
+                            <p className='text-sm'>Include all the information someone would need to answer the question</p>
+                            <RichTextEditor 
+                                onChange={onChange}
+                                onBlur={onBlur}
+                                value={value}
+                            />
+                        </>
+                    )}
+                />
+                
             </div>
             <div className='flex flex-col gap-3 w-full'>
                 <h3 className='text-2xl font-semibold'>Tags</h3>
