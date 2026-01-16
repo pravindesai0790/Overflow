@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Contracts;
 using FastExpressionCompiler;
+using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -49,12 +50,6 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
     [HttpPost]
     public async Task<ActionResult<Question>> CreateQuestion(CreateQuestionDto questionDetails)
     {
-        // var validTags = await db.Tags.Where(x => questionDetails.Tags.Contains(x.Slug)).ToListAsync();
-        //
-        // var missingTags = questionDetails.Tags.Except(validTags.Select(x => x.Slug).ToList()).ToList();
-        //
-        // if (missingTags.Count != 0)
-        //     return BadRequest($"Invalid tags: {string.Join(", ", missingTags)}");
         if(!await tagService.AreTagsValidAsync(questionDetails.Tags))
             return BadRequest("Invalid tags");
         
@@ -63,10 +58,12 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
         
         if(userId is null || name is null) return BadRequest("Cannot get user details");
 
+        var sanitizer = new HtmlSanitizer();
+
         var question = new Question
         {
             Title = questionDetails.Title,
-            Content = questionDetails.Content,
+            Content =sanitizer.Sanitize(questionDetails.Content),
             TagSlugs = questionDetails.Tags,
             AskerId = userId,
             AskerDisplayName = name
@@ -94,8 +91,10 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
         if(!await tagService.AreTagsValidAsync(updateDetails.Tags))
             return BadRequest("Invalid tags");
         
+        var sanitizer = new HtmlSanitizer();
+        
         question.Title = updateDetails.Title;
-        question.Content = updateDetails.Content;
+        question.Content = sanitizer.Sanitize(updateDetails.Content);
         question.TagSlugs = updateDetails.Tags;
         question.UpdatedAt = DateTime.UtcNow;
 
@@ -137,10 +136,12 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
         var name = User.FindFirstValue("name");
 
         if (userId is null || name is null) return BadRequest("Cannot get user details");
+        
+        var sanitizer = new HtmlSanitizer();
 
         var answer = new Answer
         {
-            Content = answerDetails.Content,
+            Content = sanitizer.Sanitize(answerDetails.Content),
             UserId = userId,
             UserDisplayName =  name,
             QuestionId = questionId
@@ -163,8 +164,10 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
         var answer = await db.Answers.FindAsync(answerId);
         if (answer is null) return NotFound();
         if (answer.QuestionId != questionId) return BadRequest("Cannot update answer details");
+        
+        var sanitizer = new HtmlSanitizer();
 
-        answer.Content = answerDetails.Content;
+        answer.Content = sanitizer.Sanitize(answerDetails.Content);
         answer.UpdatedAt = DateTime.UtcNow;
         
         await db.SaveChangesAsync();
