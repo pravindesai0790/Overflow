@@ -9,6 +9,7 @@ import {Controller, useForm} from "react-hook-form";
 import {questionSchema, QuestionSchema} from "@/lib/schemas/questionSchema";
 import {zodResolver} from "@hookform/resolvers/zod";
 import RichTextEditor from "@/components/rte/RichTextEditor";
+import clsx from "clsx";
 
 export default function QuestionForm() {
     const tags = useTagStore(state => state.tags);
@@ -41,14 +42,24 @@ export default function QuestionForm() {
                 <Controller 
                     control={control}
                     name='content'
-                    render={({field: {onChange, onBlur, value}}) => (
+                    render={({field: {onChange, onBlur, value}, fieldState}) => (
                         <>
-                            <p className='text-sm'>Include all the information someone would need to answer the question</p>
+                            <p className={clsx('text-sm', {
+                                'text-danger': fieldState.error?.message
+                            })}>
+                                Include all the information someone would need to answer the question
+                            </p>
                             <RichTextEditor 
                                 onChange={onChange}
                                 onBlur={onBlur}
                                 value={value}
+                                errorMessage={fieldState.error?.message}
                             />
+                            {fieldState.error?.message && (
+                                <span className='text-xs text-danger -mt-1'>
+                                    {fieldState.error.message}
+                                </span>
+                            )}
                         </>
                     )}
                 />
