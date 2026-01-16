@@ -13,8 +13,13 @@ import clsx from "clsx";
 import {useRouter} from "next/dist/client/components/navigation";
 import {postQuestion} from "@/lib/actions/question-actions";
 import {handleError} from "@/lib/util";
+import {Question} from "@/lib/types";
 
-export default function QuestionForm() {
+type Props = {
+    question?: Question
+}
+
+export default function QuestionForm({question}: Props) {
     const tags = useTagStore(state => state.tags);
     const {register, control, handleSubmit, formState: {isSubmitting, isValid, errors}} = useForm<QuestionSchema>({
         resolver: zodResolver(questionSchema),
