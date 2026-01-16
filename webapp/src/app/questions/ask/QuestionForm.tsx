@@ -10,6 +10,9 @@ import {questionSchema, QuestionSchema} from "@/lib/schemas/questionSchema";
 import {zodResolver} from "@hookform/resolvers/zod";
 import RichTextEditor from "@/components/rte/RichTextEditor";
 import clsx from "clsx";
+import {useRouter} from "next/dist/client/components/navigation";
+import {postQuestion} from "@/lib/actions/question-actions";
+import {handleError} from "@/lib/util";
 
 export default function QuestionForm() {
     const tags = useTagStore(state => state.tags);
@@ -17,9 +20,12 @@ export default function QuestionForm() {
         resolver: zodResolver(questionSchema),
         mode: 'onTouched'
     });
+    const router = useRouter();
     
-    const onSubmit = (data: QuestionSchema) => {
-        console.log(isSubmitting, isValid, data);
+    const onSubmit = async (data: QuestionSchema) => {
+        const {data: question, error} = await postQuestion(data);
+        if (error) handleError(error);
+        if (question) router.push(`/questions/${question.id}`);
     }
     
     return (
@@ -52,7 +58,7 @@ export default function QuestionForm() {
                             <RichTextEditor 
                                 onChange={onChange}
                                 onBlur={onBlur}
-                                value={value}
+                                value={value || ''}
                                 errorMessage={fieldState.error?.message}
                             />
                             {fieldState.error?.message && (

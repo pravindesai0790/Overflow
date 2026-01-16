@@ -23,5 +23,5 @@ export const questionSchema = z.object({
         .max(5, {message: 'No more than 5 tags can be selected'}),
 });
 
-export type QuestionSchema = z.infer<typeof questionSchema>
+export type QuestionSchema = z.input<typeof questionSchema>
 
