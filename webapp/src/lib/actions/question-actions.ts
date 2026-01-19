@@ -25,3 +25,7 @@ export async function postQuestion(question: QuestionSchema) {
 export async function updateQuestion(question: QuestionSchema, id: string) {
     return fetchClient(`/questions/${id}`, 'PUT', {body: question});
 }
+
+export async function deleteQuestion(id: string) {
+    return fetchClient(`/questions/${id}`, 'DELETE');
+}
