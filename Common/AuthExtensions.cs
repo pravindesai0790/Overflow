@@ -21,7 +21,8 @@ public static class AuthExtensions
                         "http://localhost:6001/realms/overflow", // local environment
                         "http://keycloak/realms/overflow", // this is for deployed environment (inside docker container)
                         "http://id.overflow.local/realms/overflow", // this is for full deployment inside docker compose option
-                    ]
+                    ],
+                    ClockSkew = TimeSpan.Zero
                 };
             });
         

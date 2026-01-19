@@ -17,7 +17,7 @@ export default async function EditQuestionPage({params}: { params: Params }) {
             <h3 className='text-3xl font-semibold'>
                 Edit your question
             </h3>
-            <QuestionForm question={question}/>
+            <QuestionForm questionToUpdate={question}/>
         </div>
     );
 }

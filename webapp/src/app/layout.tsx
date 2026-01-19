@@ -3,6 +3,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import TopNav from "@/components/nav/TopNav";
 import SideMenu from "@/components/SideMenu";
+import {SessionProvider} from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "Overflow",
@@ -17,6 +18,7 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning lang="en" className='h-full'>
       <body className='flex flex-col bg-stone-200 dark:bg-default-50 h-full'>
+        <SessionProvider>
           <Providers>
               <TopNav />
               <div className='flex grow overflow-auto'>
@@ -32,6 +34,7 @@ export default function RootLayout({
               </div>
               
           </Providers>
+        </SessionProvider>
       </body>
     </html>
   );

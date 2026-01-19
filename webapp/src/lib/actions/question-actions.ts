@@ -21,3 +21,7 @@ export async function searchQuestions(query: string) {
 export async function postQuestion(question: QuestionSchema) {
     return fetchClient<Question>('/questions', 'POST', {body: question});
 }
+
+export async function updateQuestion(question: QuestionSchema, id: string) {
+    return fetchClient(`/questions/${id}`, 'PUT', {body: question});
+}

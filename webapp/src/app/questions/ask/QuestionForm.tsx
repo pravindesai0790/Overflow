@@ -11,26 +11,43 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import RichTextEditor from "@/components/rte/RichTextEditor";
 import clsx from "clsx";
 import {useRouter} from "next/dist/client/components/navigation";
-import {postQuestion} from "@/lib/actions/question-actions";
+import {postQuestion, updateQuestion} from "@/lib/actions/question-actions";
 import {handleError} from "@/lib/util";
 import {Question} from "@/lib/types";
+import {useEffect, useTransition} from "react";
 
 type Props = {
-    question?: Question
+    questionToUpdate?: Question
 }
 
-export default function QuestionForm({question}: Props) {
+export default function QuestionForm({questionToUpdate}: Props) {
+    const [pending, startTransition] = useTransition();
     const tags = useTagStore(state => state.tags);
-    const {register, control, handleSubmit, formState: {isSubmitting, isValid, errors}} = useForm<QuestionSchema>({
+    const {register, control, reset, handleSubmit, formState: {isSubmitting, isValid, errors}} = useForm<QuestionSchema>({
         resolver: zodResolver(questionSchema),
         mode: 'onTouched'
     });
     const router = useRouter();
+
+    useEffect(() => {
+        if(questionToUpdate) reset({
+            ...questionToUpdate,
+            tags: questionToUpdate.tagSlugs
+        })
+    }, [questionToUpdate, reset]);
     
-    const onSubmit = async (data: QuestionSchema) => {
-        const {data: question, error} = await postQuestion(data);
-        if (error) handleError(error);
-        if (question) router.push(`/questions/${question.id}`);
+    const onSubmit = (data: QuestionSchema) => {
+        startTransition(async () => {
+            if (questionToUpdate) {
+               const {error} = await updateQuestion(data, questionToUpdate.id);
+               if(error) handleError(error);
+               router.push(`/questions/${questionToUpdate.id}`);
+            } else {
+                const {data: question, error} = await postQuestion(data);
+                if (error) handleError(error);
+                if (question) router.push(`/questions/${question.id}`);
+            }
+        })
     }
     
     return (
@@ -102,13 +119,13 @@ export default function QuestionForm({question}: Props) {
                 />
             </div>
             <Button 
-                isLoading={isSubmitting}
-                isDisabled={!isValid}
+                isLoading={isSubmitting || pending}
+                isDisabled={!isValid || pending}
                 type='submit'
                 color='primary' 
                 className='w-fit'
             >
-                Post your question
+                {questionToUpdate ? 'Update' : 'Post'} your question
             </Button>
         </Form>
     );

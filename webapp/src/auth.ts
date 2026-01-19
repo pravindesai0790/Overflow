@@ -7,10 +7,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             params: {scope: 'openid profile email offline_access'},
         }
     })],
+    session: { strategy: "jwt"},
     callbacks: {
         // it is called on every page refresh, route or API call
-        async jwt({token, account}) {
+        async jwt({token, account, profile}) {
             const now = Math.floor(Date.now() / 1000);
+            
+            if(profile && profile.sub) {
+                token.sub = profile.sub;
+            }
+            
+            console.log(`token: ${token} \n account: ${account}`);
             
             if(account && account.access_token && account.refresh_token) {
                 token.accessToken = account.access_token;
@@ -46,6 +53,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 token.accessToken = refreshed.accessToken;
                 token.refreshToken = refreshed.refresh_token;
                 token.accessTokenExpires = now + refreshed.expires_in!;
+                console.log('Token refresh successfully: ', refreshed);
                 
             } catch (error) {
                 console.log('Failed to refresh token', error);
@@ -55,6 +63,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return token;
         },
         async session({session, token}) {
+            if(token.sub) {
+                session.user.id = token.sub;
+            }
+            
             if(token.accessToken) {
                 session.accessToken = token.accessToken;
             }

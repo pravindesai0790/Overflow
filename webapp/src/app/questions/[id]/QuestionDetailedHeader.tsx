@@ -3,6 +3,7 @@ import {Button} from "@heroui/button";
 import Link from "next/dist/client/link";
 import {fuzzyTimeAgo} from "@/lib/util";
 import {getCurrentUser} from "@/lib/actions/auth-actions";
+import DeleteQuestionButton from "@/app/questions/[id]/DeleteQuestionButton";
 
 type Props = {
     question: Question;
@@ -54,6 +55,7 @@ export default async function QuestionDetailedHeader({ question }: Props) {
                         >
                             Edit
                         </Button>
+                        <DeleteQuestionButton questionId={question.id}/>
                     </div>
                 }
             </div>
