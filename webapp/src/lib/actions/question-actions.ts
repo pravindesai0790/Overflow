@@ -1,8 +1,9 @@
 ﻿'use server'
 
-import {Question} from "@/lib/types";
+import {Answer, Question} from "@/lib/types";
 import {fetchClient} from "@/lib/fetchClient";
 import {QuestionSchema} from "@/lib/schemas/questionSchema";
+import {AnswerSchema} from "@/lib/schemas/answerSchema";
 
 export async function getQuestions(tag?: string) {
     let url = '/questions';
@@ -28,4 +29,8 @@ export async function updateQuestion(question: QuestionSchema, id: string) {
 
 export async function deleteQuestion(id: string) {
     return fetchClient(`/questions/${id}`, 'DELETE');
+}
+
+export async function postAnswer(data: AnswerSchema, questionId: string) {
+    return fetchClient<Answer>(`/questions/${questionId}/answers`, 'POST', {body: data});
 }
