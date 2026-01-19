@@ -2,8 +2,9 @@
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image"
 import MenuBar from "@/components/rte/MenuBar";
-import {useEffect} from "react";
+import {useEffect, useRef} from "react";
 import clsx from "clsx";
+import {extractPublicIdsFromHtml} from "@/lib/util";
 
 type Props = {
     onChange: (body: string) => void;
@@ -13,6 +14,8 @@ type Props = {
 }
 
 export default function RichTextEditor({onChange, onBlur, value, errorMessage}: Props) {
+    const prevPublicIds = useRef<string[]>([]);
+    
     const editor = useEditor({
         extensions: [StarterKit, Image],
         content: '',
@@ -28,7 +31,25 @@ export default function RichTextEditor({onChange, onBlur, value, errorMessage}: 
             onBlur()
         },
         onUpdate({editor}) {
-            onChange(editor.getHTML())
+            const html = editor.getHTML();
+            onChange(html);
+            
+            const currentPublicIds = extractPublicIdsFromHtml(html);
+            const prev = prevPublicIds.current;
+            
+            const deleted = prev.filter(id => !currentPublicIds.includes(id));
+            
+            if (deleted.length > 0) {
+                deleted.forEach(publicId => {
+                    fetch('/api/delete-image', {
+                        method: 'POST',
+                        headers: {'Content-type': 'application/json'},
+                        body: JSON.stringify(publicId)
+                    }).then(() => console.log('deleted image publicId: ' + publicId))
+                })
+            }
+            
+            prevPublicIds.current = currentPublicIds;
         },
         immediatelyRender: false
     });
