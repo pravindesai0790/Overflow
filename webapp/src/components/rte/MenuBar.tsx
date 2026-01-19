@@ -1,7 +1,9 @@
 ﻿import {Editor} from "@tiptap/core";
 import {useEditorState} from "@tiptap/react";
-import {BoldIcon, CodeBracketIcon, ItalicIcon, StrikethroughIcon} from "@heroicons/react/20/solid";
+import {BoldIcon, CodeBracketIcon, ItalicIcon, LinkIcon, PhotoIcon, StrikethroughIcon} from "@heroicons/react/20/solid";
 import {Button} from "@heroui/button";
+import {CldUploadButton, CloudinaryUploadWidgetResults} from "next-cloudinary";
+import { errorToast } from "@/lib/util";
 
 type Props = {
     editor: Editor | null;
@@ -18,11 +20,20 @@ export default function MenuBar({ editor }: Props) {
                 isItalic: editor.isActive('italic'),
                 isCodeBlock: editor.isActive('code-block'),
                 isStrike: editor.isActive('strike'),
+                isLink: editor.isActive('link'),
             }
         }
     })
     
     if(!editor || !editorState) return null;
+    
+    const onUploadImage = (result: CloudinaryUploadWidgetResults) => {
+        if(result.info && typeof result.info === "object") {
+            editor.chain().focus().setImage({src: result.info.secure_url}).run();
+        } else {
+            errorToast({message: 'Problem adding image'});
+        }
+    }
     
     const options = [
         {
@@ -44,7 +55,13 @@ export default function MenuBar({ editor }: Props) {
             icon: <CodeBracketIcon className='w-5 h-5' />,
             onClick: () => editor.chain().focus().toggleCodeBlock().run(),
             pressed: editorState.isCodeBlock
+        },
+        {
+            icon: <LinkIcon className='w-5 h-5' />,
+            onClick: () => editor.chain().focus().toggleLink().run(),
+            pressed: editorState.isLink
         }
+        
     ]
     
     return (
@@ -62,6 +79,17 @@ export default function MenuBar({ editor }: Props) {
                     {option.icon}
                 </Button>
             ))}
+            <Button
+                isIconOnly
+                size='sm'
+                as={CldUploadButton}
+                options={{maxFiles: 1}}
+                onSuccess={onUploadImage}
+                signatureEndpoint='/api/sign-image'
+                uploadPreset='overflow'
+            >
+                <PhotoIcon className='w-5 h-5' />
+            </Button>
         </div>
     );
 }

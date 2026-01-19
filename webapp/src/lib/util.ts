@@ -7,7 +7,7 @@ import {
     isYesterday
 } from "date-fns";
 
-function errorToast(error: {message: string, status?: number}) {
+export function errorToast(error: {message: string, status?: number}) {
     return addToast({
         color: 'danger',
         title: error.status || 'Error!',
