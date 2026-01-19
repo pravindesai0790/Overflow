@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import {useTagStore} from "@/lib/useTagStore";
+import {useTagStore} from "@/lib/hooks/useTagStore";
 import {Form} from "@heroui/form";
 import {Input} from "@heroui/input";
 import {Select, SelectItem} from "@heroui/select";
@@ -96,27 +96,29 @@ export default function QuestionForm({questionToUpdate}: Props) {
             <div className='flex flex-col gap-3 w-full'>
                 <h3 className='text-2xl font-semibold'>Tags</h3>
                 <p className='text-sm'>Add up to 5 tags to describe what your question is about</p>
-                <Controller 
-                    name='tags'
-                    control={control} 
-                    render={({field, fieldState}) => (
-                        <Select
-                            className='w-full'
-                            label='Select 1-5 tags'
-                            selectionMode='multiple'
-                            isClearable
-                            disallowEmptySelection
-                            items={tags}
-                            onBlur={field.onBlur}
-                            selectedKeys={field.value ?? []}
-                            onSelectionChange={(keys) => field.onChange(Array.from(keys))}
-                            isInvalid={fieldState.invalid}
-                            errorMessage={fieldState.error?.message}
-                        >
-                            {(tag) => <SelectItem key={tag.id}>{tag.name}</SelectItem> }
-                        </Select>
-                    )} 
-                />
+                {tags.length > 0 && 
+                    <Controller 
+                        name='tags'
+                        control={control} 
+                        render={({field, fieldState}) => (
+                            <Select
+                                className='w-full'
+                                label='Select 1-5 tags'
+                                selectionMode='multiple'
+                                isClearable
+                                disallowEmptySelection
+                                items={tags}
+                                onBlur={field.onBlur}
+                                selectedKeys={field.value ?? []}
+                                onSelectionChange={(keys) => field.onChange(Array.from(keys))}
+                                isInvalid={fieldState.invalid}
+                                errorMessage={fieldState.error?.message}
+                            >
+                                {(tag) => <SelectItem key={tag.id}>{tag.name}</SelectItem> }
+                            </Select>
+                        )} 
+                    />
+                }
             </div>
             <Button 
                 isLoading={isSubmitting || pending}

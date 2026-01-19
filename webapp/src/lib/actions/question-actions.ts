@@ -4,6 +4,7 @@ import {Answer, Question} from "@/lib/types";
 import {fetchClient} from "@/lib/fetchClient";
 import {QuestionSchema} from "@/lib/schemas/questionSchema";
 import {AnswerSchema} from "@/lib/schemas/answerSchema";
+import {revalidatePath} from "next/dist/server/web/spec-extension/revalidate";
 
 export async function getQuestions(tag?: string) {
     let url = '/questions';
@@ -32,5 +33,9 @@ export async function deleteQuestion(id: string) {
 }
 
 export async function postAnswer(data: AnswerSchema, questionId: string) {
-    return fetchClient<Answer>(`/questions/${questionId}/answers`, 'POST', {body: data});
+    const result = await fetchClient<Answer>(`/questions/${questionId}/answers`, 'POST', {body: data});
+    
+    revalidatePath(`questions/${questionId}`);
+    
+    return result;
 }

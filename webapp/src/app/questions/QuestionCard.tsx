@@ -4,7 +4,7 @@ import {Chip} from "@heroui/chip";
 import {Avatar} from "@heroui/avatar";
 import clsx from "clsx";
 import {CheckIcon} from "@heroicons/react/24/outline";
-import {timeAgo} from "@/lib/util";
+import {stripHtmlTags, timeAgo} from "@/lib/util";
 
 type Props = {
     question: Question;
@@ -42,10 +42,9 @@ export default function QuestionCard({question}: Props) {
                     >
                         {question.title}
                     </Link>
-                    <div 
-                        className='line-clamp-2'
-                        dangerouslySetInnerHTML={{__html: question.content}}
-                    />
+                    <div className='line-clamp-2'>
+                        {stripHtmlTags(question.content)}
+                    </div>
                     <div className='flex justify-between pt-2'>
                         <div className='flex gap-2'>
                             {question.tagSlugs.map(slug => (
