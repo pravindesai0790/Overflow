@@ -1,5 +1,6 @@
 ﻿import {EditorContent, useEditor} from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Image from "@tiptap/extension-image"
 import MenuBar from "@/components/rte/MenuBar";
 import {useEffect} from "react";
 import clsx from "clsx";
@@ -13,7 +14,7 @@ type Props = {
 
 export default function RichTextEditor({onChange, onBlur, value, errorMessage}: Props) {
     const editor = useEditor({
-        extensions: [StarterKit],
+        extensions: [StarterKit, Image],
         content: '',
         editorProps: {
             attributes: {
