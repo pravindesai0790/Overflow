@@ -4,7 +4,7 @@ import Keycloak from "next-auth/providers/keycloak"
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [Keycloak({
         authorization: {
-            params: {scope: 'openid profile email offline_access'},
+            params: {scope: 'openid profile email'},
         }
     })],
     session: { strategy: "jwt"},

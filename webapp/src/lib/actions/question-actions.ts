@@ -35,7 +35,19 @@ export async function deleteQuestion(id: string) {
 export async function postAnswer(data: AnswerSchema, questionId: string) {
     const result = await fetchClient<Answer>(`/questions/${questionId}/answers`, 'POST', {body: data});
     
-    revalidatePath(`questions/${questionId}`);
+    revalidatePath(`/questions/${questionId}`);
     
+    return result;
+}
+
+export async function editAnswer(answerId: string, questionId: string, content: AnswerSchema) {
+    const result = await fetchClient(`/questions/${questionId}/answers/${answerId}`, 'PUT', {body: content});
+    revalidatePath(`/questions/${questionId}`);
+    return result;
+}
+
+export async function deleteAnswer(answerId: string, questionId: string) {
+    const result = await fetchClient(`/questions/${questionId}/answers/${answerId}`, 'DELETE');
+    revalidatePath(`/questions/${questionId}`);
     return result;
 }
