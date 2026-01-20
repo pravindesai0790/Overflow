@@ -8,14 +8,6 @@ export async function testAuth() {
 }
 
 export async function getCurrentUser() {
-    try {
-        const session = await auth();
-        
-        if(!session) return null;
-        
-        return session.user;
-    } catch(err: unknown) {
-        console.log(err);
-        return null;
-    }
+    const session = await auth();
+    return session?.user ?? null;
 }
