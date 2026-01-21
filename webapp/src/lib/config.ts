@@ -13,6 +13,7 @@ export const authConfig = {
     kcIssuer: getEnv('AUTH_KEYCLOAK_ISSUER'),
     kcSecret: getEnv('AUTH_KEYCLOAK_SECRET'),
     kcClientId: getEnv('AUTH_KEYCLOAK_ID'),
+    kcInternal: getEnv('AUTH_KEYCLOAK_ISSUER_INTERNAL'),
     secret: getEnv('AUTH_URL'),
     authUrl: getEnv('AUTH_KEYCLOAK_ISSUER'),
 }

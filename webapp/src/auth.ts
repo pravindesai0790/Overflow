@@ -6,7 +6,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [Keycloak({
         authorization: {
             params: {scope: 'openid profile email'},
-        }
+            url: `${authConfig.kcIssuer}/protocol/openid-connect/auth`
+        },
+        // this is because at this point this is Next.js server to server communication between our webapp and Keycloak, Our browser is not involved at this point 
+        token: `${authConfig.kcInternal}/protocol/openid-connect/token` ,
+        userinfo: `${authConfig.kcInternal}/protocol/openid-connect/userinfo` ,
     })],
     session: { strategy: "jwt"},
     callbacks: {
