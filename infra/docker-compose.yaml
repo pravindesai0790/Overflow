@@ -26,8 +26,6 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://production-dashboard:18889"
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
       OTEL_SERVICE_NAME: "keycloak"
-    ports:
-      - "6001:8080"
     expose:
       - "8080"
       - "9000"
@@ -85,8 +83,6 @@ services:
       services__keycloak__http__0: "http://keycloak:8080"
       KEYCLOAK_MANAGEMENT: "http://keycloak:9000"
       services__keycloak__management__0: "http://keycloak:9000"
-      KEYCLOAK_KEYCLOAK: "keycloak://keycloak:8080"
-      services__keycloak__keycloak__0: "keycloak://keycloak:8080"
       ConnectionStrings__questionDb: "Host=postgres;Port=5432;Username=postgres;Password=${POSTGRES_PASSWORD};Database=questionDb"
       QUESTIONDB_HOST: "postgres"
       QUESTIONDB_PORT: "5432"
@@ -170,10 +166,12 @@ services:
       QUESTION_SVC_HTTP: "http://question-svc:${QUESTION_SVC_PORT}"
       REVERSEPROXY__ROUTES__route0__MATCH__PATH: "/questions/{**catch-all}"
       REVERSEPROXY__ROUTES__route0__CLUSTERID: "cluster_question-svc"
-      REVERSEPROXY__ROUTES__route1__MATCH__PATH: "/tags/{**catch-all}"
+      REVERSEPROXY__ROUTES__route1__MATCH__PATH: "/test/{**catch-all}"
       REVERSEPROXY__ROUTES__route1__CLUSTERID: "cluster_question-svc"
-      REVERSEPROXY__ROUTES__route2__MATCH__PATH: "/search/{**catch-all}"
-      REVERSEPROXY__ROUTES__route2__CLUSTERID: "cluster_search-svc"
+      REVERSEPROXY__ROUTES__route2__MATCH__PATH: "/tags/{**catch-all}"
+      REVERSEPROXY__ROUTES__route2__CLUSTERID: "cluster_question-svc"
+      REVERSEPROXY__ROUTES__route3__MATCH__PATH: "/search/{**catch-all}"
+      REVERSEPROXY__ROUTES__route3__CLUSTERID: "cluster_search-svc"
       REVERSEPROXY__CLUSTERS__cluster_question-svc__DESTINATIONS__destination1__ADDRESS: "https+http://question-svc"
       REVERSEPROXY__CLUSTERS__cluster_search-svc__DESTINATIONS__destination1__ADDRESS: "https+http://search-svc"
       services__question-svc__http__0: "http://question-svc:${QUESTION_SVC_PORT}"
@@ -191,6 +189,24 @@ services:
       - "8001:8001"
     expose:
       - "5000"
+    networks:
+      - "aspire"
+  webapp:
+    image: "${WEBAPP_IMAGE}"
+    environment:
+      NODE_ENV: "production"
+      KEYCLOAK_HTTP: "http://keycloak:8080"
+      services__keycloak__http__0: "http://keycloak:8080"
+      KEYCLOAK_MANAGEMENT: "http://keycloak:9000"
+      services__keycloak__management__0: "http://keycloak:9000"
+      PORT: "4000"
+      VIRTUAL_HOST: "app.overflow.local"
+      VIRTUAL_PORT: "4000"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://production-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "webapp"
+    expose:
+      - "4000"
     networks:
       - "aspire"
   nginx-proxy:

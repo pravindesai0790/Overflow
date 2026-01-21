@@ -101,7 +101,10 @@ var yarp = builder.AddYarp("gateway")
 
 var webapp = builder.AddJavaScriptApp("webapp", "../webapp")
     .WithReference(keycloak)
-    .WithHttpEndpoint(env: "PORT", port: 3000);
+    .WithHttpEndpoint(env: "PORT", port: 3000, targetPort: 4000)
+    .WithEnvironment("VIRTUAL_HOST", "app.overflow.local")
+    .WithEnvironment("VIRTUAL_PORT", "4000")
+    .PublishAsDockerFile();
 
 // Configuration of nginx reverse proxy in local deployment not dev
 // which will proxy requests externally to the internal services such as keycloak and gateway services
