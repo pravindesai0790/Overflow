@@ -1,5 +1,5 @@
 ﻿import NextAuth from "next-auth"
-import Keycloak from "next-auth/providers/keycloak"
+import Keycloak from "@auth/core/providers/keycloak"
 import {authConfig} from "@/lib/config";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -36,7 +36,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             
             // it will get new token from the refresh token
             try {
-                const response = await fetch(`${authConfig.kcIssuer}/protocol/openid-connect/token`, {
+                const response = await fetch(`${authConfig.kcInternal}/protocol/openid-connect/token`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: new URLSearchParams({
@@ -55,7 +55,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return token;
                 }
                 
-                token.accessToken = refreshed.accessToken;
+                token.accessToken = refreshed.access_token;
                 token.refreshToken = refreshed.refresh_token;
                 token.accessTokenExpires = now + refreshed.expires_in!;
                 console.log('Token refresh successfully: ', refreshed);

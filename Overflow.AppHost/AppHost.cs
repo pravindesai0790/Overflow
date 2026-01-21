@@ -112,7 +112,13 @@ if (!builder.Environment.IsDevelopment())
 {
     builder.AddContainer("nginx-proxy", "nginxproxy/nginx-proxy", "1.8")
         .WithEndpoint(80, 80, "nginx", isExternal: true)
-        .WithBindMount("/var/run/docker.sock", "/tmp/docker.sock", true);
+        .WithEndpoint(443, 443, "nginx-ssl", isExternal: true)
+        .WithBindMount("/var/run/docker.sock", "/tmp/docker.sock", true)
+        .WithBindMount("../infra/devcerts", "/etc/nginx/certs", true);
+
+    keycloak.WithEnvironment("KC_HOSTNAME", "https://id.overflow.local")
+        .WithEnvironment("KC_HOSTNAME_BACKCHANNEL_DYNAMIC", "true"); //KC_HOSTNAME_BACKCHANNEL_DYNAMIC
+
 }
 
 builder.Build().Run();
