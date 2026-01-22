@@ -14,7 +14,7 @@ import {postQuestion, updateQuestion} from "@/lib/actions/question-actions";
 import {handleError} from "@/lib/util";
 import {Question} from "@/lib/types";
 import {useEffect, useTransition} from "react";
-import dynamic from "next/dist/shared/lib/dynamic";
+import dynamic from "next/dynamic";
 
 const RichTextEditor = dynamic(() => import("@/components/rte/RichTextEditor"), {ssr: false});
 
