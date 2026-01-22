@@ -22,7 +22,7 @@ export type Answer = {
     updatedAt?: string
     accepted: boolean
     questionId: string
-    author: Profile
+    author?: Profile
 }
 
 export type Tag = {
