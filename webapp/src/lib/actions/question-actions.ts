@@ -1,15 +1,42 @@
 ﻿'use server'
 
-import {Answer, Question} from "@/lib/types";
+import {Answer, FetchResponse, Profile, Question} from "@/lib/types";
 import {fetchClient} from "@/lib/fetchClient";
 import {QuestionSchema} from "@/lib/schemas/questionSchema";
 import {AnswerSchema} from "@/lib/schemas/answerSchema";
 import {revalidatePath} from "next/dist/server/web/spec-extension/revalidate";
 
-export async function getQuestions(tag?: string) {
-    let url = '/questions';
-    if (tag) url += `?tag=${tag}`;
-    return fetchClient<Question[]>(url, 'GET');
+export async function getQuestions(tag?: string) : Promise<FetchResponse<Question[]>> {
+    let questionUrl = '/questions';
+    if (tag) questionUrl += `?tag=${tag}`;
+    
+    const {data: questions, error: questionError} = await fetchClient<Question[]>(questionUrl, 'GET');
+
+    if(!questions || questionError) {
+        return {
+            data: null,
+            error: {message: 'Problem getting questions', status: 500}
+        }
+    }
+    
+    const userIds = Array.from(new Set(questions.map(x => x.askerId)));
+    if (userIds.length === 0) return {data: []};
+    
+    const ids = Array.from(userIds).sort();
+    const profilesUrl = '/profiles/batch?' + new URLSearchParams({ids: ids.join(',')});
+    const {data: profiles, error: profilesError} = await fetchClient<Profile[]>(profilesUrl, 'GET', 
+        {cache: "force-cache", next: {revalidate: 300}});
+    
+    if (profilesError) return {data: null, error: {message: 'Problem getting profiles', status: 500}};
+    
+    const profileMap = new Map(profiles?.map(p => [p.userId, p]));
+    
+    const enriched = questions.map(q => ({
+        ...q,
+        author: profileMap.get(q.askerId)
+    }));
+    
+    return {data: enriched}
 }
 
 export async function getQuestionById(id: string) {
