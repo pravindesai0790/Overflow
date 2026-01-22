@@ -31,7 +31,7 @@ var keycloak = builder.AddKeycloak("keycloak", 6001)
 // it will create postgres service and PgAdmin in docker container with help of Aspire Host postgres integration
 var postgres = builder.AddPostgres("postgres", port: 5432) 
     .WithDataVolume("postgres-data")
-    .WithPgAdmin();
+    .WithPgWeb();
 
 // it will create postgres DB as questionDB 
 var questionDb = postgres.AddDatabase("questionDb"); 
@@ -100,7 +100,7 @@ var yarp = builder.AddYarp("gateway")
         yarpBuilder.AddRoute("/test/{**catch-all}", questionService);
         yarpBuilder.AddRoute("/tags/{**catch-all}", questionService);
         yarpBuilder.AddRoute("/search/{**catch-all}", searchService);
-        yarpBuilder.AddRoute("/profile/{**catch-all}", profileService);
+        yarpBuilder.AddRoute("/profiles/{**catch-all}", profileService);
     })
     .WithEnvironment("ASPNETCORE_URLS", "http://*:8001")
     .WithEndpoint(port: 8001, targetPort: 8001, scheme: "http", name: "gateway", isExternal: true) 

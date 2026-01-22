@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using Common;
 using Microsoft.EntityFrameworkCore;
 using ProfileService.Data;
+using ProfileService.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,17 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseMiddleware<UserProfileCreationMiddleware>();
+
+app.MapGet("/profiles/me", async (ClaimsPrincipal user, ProfileDbContext db) =>
+{
+    var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (userId is null) return Results.Unauthorized();
+    
+    var profile = await db.UserProfiles.FindAsync(userId);
+    return profile is null ? Results.NotFound() : Results.Ok(profile);
+}).RequireAuthorization();
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider; // it provides access to all services available inside our app including DBContext
