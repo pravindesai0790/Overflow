@@ -49,10 +49,18 @@ public static class WolverineExtensions
                 .AddSource("Wolverine");
         });
         
-        // Integrate Wolverine into our application. it will create exchanges and queue in RabbitMQ (It is dependent on RabbitMQ to start that why above policy is added)
+        // Integrate Wolverine into our application. it will create exchanges and queue in RabbitMQ (It is dependent on RabbitMQ to start that's why above policy is added)
         builder.UseWolverine(opts =>
         {
-            opts.UseRabbitMqUsingNamedConnection("messaging").AutoProvision().DeclareExchange("questions"); // It publishes all message to rabbitmq's "questions" exchange.
+            opts.UseRabbitMqUsingNamedConnection("messaging")
+                .AutoProvision()
+                /*
+                 * 'UseConventionalRouting' means is that we don't configure so much, and we don't tell Wolverine where to locate the queues and exchanges inside RabbitMQ.
+                 * Instead, it uses the classes that we provide, and it figures out what exchanges and which queues it should have.
+                 * And that gives us a more automated way of using RabbitMQ effectively.
+                 */
+                .UseConventionalRouting();
+                //.DeclareExchange("questions"); // It publishes all message to rabbitmq's "questions" exchange.
             
             configureMessaging(opts);
         });

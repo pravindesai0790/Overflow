@@ -36,8 +36,7 @@ builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb");
 // using extension method to add common code to handle messaging(RabbitMq) service.
 await builder.UseWolverineWithRabbitMqAsync(opts =>
 {
-    opts.PublishAllMessages()
-        .ToRabbitExchange("questions"); // It publishes all message to rabbitmq's "questions" exchange.
+    //opts.PublishAllMessages().ToRabbitExchange("questions"); // It publishes all message to rabbitmq's "questions" exchange. (update:- it is now handled by UseConventionalRouting)
     opts.ApplicationAssembly = typeof(Program).Assembly; // Wolverine is going to go looking in this project the question service for any handlers.
 });
 

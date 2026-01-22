@@ -8,7 +8,7 @@ import {editAnswer, postAnswer} from "@/lib/actions/question-actions";
 import {handleError} from "@/lib/util";
 import {Button} from "@heroui/button";
 import { useAnswerStore } from "@/lib/hooks/useAnswerStore";
-import dynamic from "next/dist/shared/lib/dynamic";
+import dynamic from "next/dynamic";
 
 const RichTextEditor = dynamic(() => import("@/components/rte/RichTextEditor"), {ssr: false});
 

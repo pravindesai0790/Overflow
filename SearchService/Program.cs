@@ -1,12 +1,9 @@
 using System.Text.RegularExpressions;
 using Common;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using SearchService.Data;
 using SearchService.Models;
 using Typesense;
 using Typesense.Setup;
-using Wolverine;
 using Wolverine.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,14 +16,15 @@ builder.AddServiceDefaults();
 // using extension method to add common code to handle messaging(RabbitMq) service.
 await builder.UseWolverineWithRabbitMqAsync(opts =>
 {
-    // It listens from exchange named: questions and the service that's listening from the exchange is search
-    opts.ListenToRabbitQueue("questions.search", cfg =>
-    {
-        // It will bind queue named: "questions.search" in questions exchange.
-        // So when message is published to questions exchange than it will bind it to "questions.search" queue.
-        // Then handler(method we have write in application) will pick up messages from this queue and process it
-        cfg.BindExchange("questions"); 
-    }); 
+    // // It listens from exchange named: questions and the service that's listening from the exchange is search
+    // update:- it is now handled by UseConventionalRouting in WolverineExtensions class
+    // opts.ListenToRabbitQueue("questions.search", cfg =>
+    // {
+    //     // It will bind queue named: "questions.search" in questions exchange.
+    //     // So when message is published to questions exchange than it will bind it to "questions.search" queue.
+    //     // Then handler(method we have write in application) will pick up messages from this queue and process it
+    //     cfg.BindExchange("questions"); 
+    // }); 
     opts.ApplicationAssembly = typeof(Program).Assembly; // Wolverine is going to go looking in this project the question service for any handlers.
 });
 
