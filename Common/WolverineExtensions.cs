@@ -16,29 +16,35 @@ public static class WolverineExtensions
 {
     public static async Task UseWolverineWithRabbitMqAsync(this IHostApplicationBuilder builder, Action<WolverineOptions> configureMessaging)
     {
-        // this will catch message broker exception (not starting) and retry to start it as configured 
-        var retryPolicy = Policy
-            .Handle<BrokerUnreachableException>()
-            .Or<SocketException>()
-            .WaitAndRetryAsync(
-                retryCount: 5,
-                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, timeSpan, retryCount) =>
-                {
-                    Console.WriteLine($"Retry attempt {retryCount} failed. Retrying in " + $"{timeSpan.Seconds} seconds...");
-                });
+        // it will not retry to start RabbitMQ service in Design time (i.e, while creating DB migration)
+        var isEfDesignTime = AppDomain.CurrentDomain.FriendlyName.StartsWith("ef", StringComparison.OrdinalIgnoreCase);
 
-        // retry code if messaging service (i.e, RabbitMQ) fail to start before we start executing Wolverine integration
-        await retryPolicy.ExecuteAsync(async () =>
+        if (!isEfDesignTime)
         {
-            var endpoint = builder.Configuration.GetConnectionString("messaging")
-                           ?? throw new InvalidOperationException("messaging (RabbitMQ) connection string not found...");
+            // this will catch message broker exception (not starting) and retry to start it as configured 
+            var retryPolicy = Policy
+                .Handle<BrokerUnreachableException>()
+                .Or<SocketException>()
+                .WaitAndRetryAsync(
+                    retryCount: 5,
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, timeSpan, retryCount) =>
+                    {
+                        Console.WriteLine($"Retry attempt {retryCount} failed. Retrying in " + $"{timeSpan.Seconds} seconds...");
+                    });
 
-            var factory = new ConnectionFactory
+            // retry code if messaging service (i.e, RabbitMQ) fail to start before we start executing Wolverine integration
+            await retryPolicy.ExecuteAsync(async () =>
             {
-                Uri = new Uri(endpoint)
-            };
-            await using var connectio = await factory.CreateConnectionAsync();
-        });
+                var endpoint = builder.Configuration.GetConnectionString("messaging")
+                               ?? throw new InvalidOperationException("messaging (RabbitMQ) connection string not found...");
+
+                var factory = new ConnectionFactory
+                {
+                    Uri = new Uri(endpoint)
+                };
+                await using var connectio = await factory.CreateConnectionAsync();
+            });
+        }
         
         // this is going to setup Open telemetry for RabbitMQ via Wolverine.
         // So it's going to publish the traces so that it will be able to see what's going on between our different services

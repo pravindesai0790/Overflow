@@ -15,9 +15,6 @@ public class Question
     
     [MaxLength(36)]
     public required string AskerId { get; set; }
-    
-    [MaxLength(300)]
-    public required string AskerDisplayName { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

@@ -65,8 +65,7 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
             Title = questionDetails.Title,
             Content =sanitizer.Sanitize(questionDetails.Content),
             TagSlugs = questionDetails.Tags,
-            AskerId = userId,
-            AskerDisplayName = name
+            AskerId = userId
         };
 
         db.Questions.Add(question);
@@ -143,7 +142,6 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
         {
             Content = sanitizer.Sanitize(answerDetails.Content),
             UserId = userId,
-            UserDisplayName =  name,
             QuestionId = questionId
         };
         
