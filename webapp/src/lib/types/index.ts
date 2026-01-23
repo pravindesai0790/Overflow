@@ -30,6 +30,7 @@ export type Tag = {
     name: string
     slug: string
     description: string
+    usageCount: number
 }
 
 export type Profile = {
