@@ -20,6 +20,8 @@ public class Answer
 
     public bool Accepted { get; set; }
     
+    public int Votes { get; set; }
+    
     // nav properties
     [MaxLength(36)]
     public required string QuestionId { get; set; }

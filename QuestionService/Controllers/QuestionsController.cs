@@ -70,6 +70,16 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
 
         db.Questions.Add(question);
         await db.SaveChangesAsync();
+
+        var slugs = question.TagSlugs.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+        if (slugs.Length > 0)
+        {
+            await db.Tags
+                .Where(t => ((IEnumerable<string>)slugs).Contains(t.Slug))
+                .ExecuteUpdateAsync(x => x.SetProperty(t => t.UsageCount, 
+                    t => t.UsageCount + 1));
+        }
         
         await bus.PublishAsync(new QuestionCreated(question.Id, question.Title, question.Content
             , question.CreatedAt, question.TagSlugs));
@@ -90,6 +100,12 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
         if(!await tagService.AreTagsValidAsync(updateDetails.Tags))
             return BadRequest("Invalid tags");
         
+        var orignal = question.TagSlugs.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        var incoming = updateDetails.Tags.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+        var removed = orignal.Except(incoming, StringComparer.OrdinalIgnoreCase).ToArray();
+        var added = incoming.Except(orignal, StringComparer.OrdinalIgnoreCase).ToArray();
+        
         var sanitizer = new HtmlSanitizer();
         
         question.Title = updateDetails.Title;
@@ -98,6 +114,22 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
         question.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();
+
+        if (removed.Length > 0)
+        {
+            await db.Tags
+                .Where(t => Enumerable.Contains(removed, t.Slug) && t.UsageCount > 0)
+                .ExecuteUpdateAsync(u => 
+                    u.SetProperty(t => t.UsageCount, t => t.UsageCount - 1));
+        }
+        
+        if (added.Length > 0)
+        {
+            await db.Tags
+                .Where(t => Enumerable.Contains(added, t.Slug))
+                .ExecuteUpdateAsync(u => 
+                    u.SetProperty(t => t.UsageCount, t => t.UsageCount + 1));
+        }
 
         await bus.PublishAsync(new QuestionUpdated(question.Id, question.Title, question.Content, 
             question.TagSlugs.AsArray()));
