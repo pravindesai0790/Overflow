@@ -36,6 +36,7 @@ var postgres = builder.AddPostgres("postgres", port: 5432)
 // it will create postgres DB as questionDB 
 var questionDb = postgres.AddDatabase("questionDb"); 
 var profileDb = postgres.AddDatabase("profileDb"); 
+var statDb = postgres.AddDatabase("statDb"); 
 
 var rabbitmq = builder.AddRabbitMQ("messaging")
     .WithDataVolume("rabbitmq-data")
@@ -90,6 +91,12 @@ var profileService = builder.AddProject<Projects.ProfileService>("profile-svc")
     .WaitFor(profileDb)
     .WaitFor(rabbitmq);
 
+var statService = builder.AddProject<Projects.StatsService>("stat-svc")
+    .WithReference(statDb) 
+    .WithReference(rabbitmq)
+    .WaitFor(statDb)
+    .WaitFor(rabbitmq);
+
 // Configuration of a reverse proxy (gateway to API services) using YARP in Aspire
 // which will proxy requests to our individual internal services
 #pragma warning disable ASPIRECERTIFICATES001
@@ -101,6 +108,7 @@ var yarp = builder.AddYarp("gateway")
         yarpBuilder.AddRoute("/tags/{**catch-all}", questionService);
         yarpBuilder.AddRoute("/search/{**catch-all}", searchService);
         yarpBuilder.AddRoute("/profiles/{**catch-all}", profileService);
+        yarpBuilder.AddRoute("/stats/{**catch-all}", statService);
     })
     .WithEnvironment("ASPNETCORE_URLS", "http://*:8001")
     .WithEndpoint(port: 8001, targetPort: 8001, scheme: "http", name: "gateway", isExternal: true) 
