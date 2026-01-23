@@ -40,4 +40,24 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.MapGet("/stats/trending-tags", async (IQuerySession session) =>
+{
+    var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+    var start = today.AddDays(-6);
+
+    var rows = await session.Query<TagDailyUsage>()
+        .Where(x => x.Date >= start && x.Date <= today)
+        .Select(x => new { x.Tag, x.Count })
+        .ToListAsync();
+
+    var top = rows
+        .GroupBy(x => x.Tag)
+        .Select(x => new { tag = x.Key, count = x.Sum(t => t.Count) })
+        .OrderByDescending(x => x.count)
+        .Take(5)
+        .ToList();
+    
+    return Results.Ok(top);
+});
+
 app.Run();

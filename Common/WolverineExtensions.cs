@@ -65,7 +65,11 @@ public static class WolverineExtensions
                  * Instead, it uses the classes that we provide, and it figures out what exchanges and which queues it should have.
                  * And that gives us a more automated way of using RabbitMQ effectively.
                  */
-                .UseConventionalRouting();
+                .UseConventionalRouting(x =>
+                {
+                    // it will create unique queue name for each service which are listening 
+                    x.QueueNameForListener(t => $"{t.FullName}.{builder.Environment.ApplicationName}");
+                });
                 //.DeclareExchange("questions"); // It publishes all message to rabbitmq's "questions" exchange.
             
             configureMessaging(opts);
