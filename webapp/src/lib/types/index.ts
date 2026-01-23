@@ -33,6 +33,11 @@ export type Tag = {
     usageCount: number
 }
 
+export type TrendingTag = {
+    tag: string
+    count: number
+}
+
 export type Profile = {
     userId: string
     displayName: string
