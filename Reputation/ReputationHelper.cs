@@ -2,7 +2,7 @@
 
 namespace Reputation;
 
-public class ReputationHelper
+public abstract class ReputationHelper
 {
     private static int GetDelta(ReputationReason reason) => reason switch
     {

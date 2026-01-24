@@ -22,14 +22,20 @@ builder.Services.AddMarten(opts =>
     // instead of Guid (default) we are using string as Id in event so need to specify it
     opts.Events.StreamIdentity = StreamIdentity.AsString;
     opts.Events.AddEventType<QuestionCreated>();
+    opts.Events.AddEventType<UserReputationChanged>();
 
     // Creating index for performance purpose
     opts.Schema.For<TagDailyUsage>()
         .Index(x => x.Tag)
         .Index(x => x.Date);
     
+    opts.Schema.For<UserDailyReputation>()
+        .Index(y => y.UserId)
+        .Index(z => z.Date);
+    
     // Adding projection that will be executed inline (The projection will be updated in the same transaction as the events being captured)
     opts.Projections.Add(new TrendingTagsProjection(), ProjectionLifecycle.Inline);
+    opts.Projections.Add(new TopUsersProjection(), ProjectionLifecycle.Inline);
 }).UseLightweightSessions();
 
 var app = builder.Build();
@@ -57,6 +63,26 @@ app.MapGet("/stats/trending-tags", async (IQuerySession session) =>
         .Take(5)
         .ToList();
     
+    return Results.Ok(top);
+});
+
+app.MapGet("/stats/top-users", async (IQuerySession session) =>
+{
+    var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+    var start = today.AddDays(-6);
+
+    var rows = await session.Query<UserDailyReputation>()
+        .Where(x => x.Date >= start && x.Date <= today)
+        .Select(x => new { x.UserId, x.Delta })
+        .ToListAsync();
+
+    var top = rows
+        .GroupBy(x => x.UserId)
+        .Select(g => new { UserId = g.Key, Delta = g.Sum(t => t.Delta) })
+        .OrderByDescending(x => x.Delta)
+        .Take(5)
+        .ToList();
+
     return Results.Ok(top);
 });
 
