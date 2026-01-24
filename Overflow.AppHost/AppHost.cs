@@ -37,6 +37,7 @@ var postgres = builder.AddPostgres("postgres", port: 5432)
 var questionDb = postgres.AddDatabase("questionDb"); 
 var profileDb = postgres.AddDatabase("profileDb"); 
 var statDb = postgres.AddDatabase("statDb"); 
+var voteDb = postgres.AddDatabase("voteDb"); 
 
 var rabbitmq = builder.AddRabbitMQ("messaging")
     .WithDataVolume("rabbitmq-data")
@@ -97,6 +98,14 @@ var statService = builder.AddProject<Projects.StatsService>("stat-svc")
     .WaitFor(statDb)
     .WaitFor(rabbitmq);
 
+var voteService = builder.AddProject<Projects.VoteService>("vote-svc")
+    .WithReference(keycloak) 
+    .WithReference(voteDb) 
+    .WithReference(rabbitmq)
+    .WaitFor(keycloak)
+    .WaitFor(voteDb)
+    .WaitFor(rabbitmq);
+
 // Configuration of a reverse proxy (gateway to API services) using YARP in Aspire
 // which will proxy requests to our individual internal services
 #pragma warning disable ASPIRECERTIFICATES001
@@ -109,6 +118,7 @@ var yarp = builder.AddYarp("gateway")
         yarpBuilder.AddRoute("/search/{**catch-all}", searchService);
         yarpBuilder.AddRoute("/profiles/{**catch-all}", profileService);
         yarpBuilder.AddRoute("/stats/{**catch-all}", statService);
+        yarpBuilder.AddRoute("/votes/{**catch-all}", voteService);
     })
     .WithEnvironment("ASPNETCORE_URLS", "http://*:8001")
     .WithEndpoint(port: 8001, targetPort: 8001, scheme: "http", name: "gateway", isExternal: true) 
