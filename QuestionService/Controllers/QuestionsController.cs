@@ -9,6 +9,7 @@ using QuestionService.Data;
 using QuestionService.DTOs;
 using QuestionService.Models;
 using QuestionService.Services;
+using Reputation;
 using Wolverine;
 
 namespace QuestionService.Controllers;
@@ -239,6 +240,7 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
         await db.SaveChangesAsync();
         
         await bus.PublishAsync(new AnswerAccepted(questionId));
+        await bus.PublishAsync(ReputationHelper.MakeEvent(answer.UserId, ReputationReason.AnswerAccepted, question.AskerId));
         
         return NoContent();
     }
