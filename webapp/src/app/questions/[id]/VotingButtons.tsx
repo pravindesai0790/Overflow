@@ -1,11 +1,36 @@
-﻿import {Button} from "@heroui/button";
-import {ArrowDownCircleIcon, ArrowUpCircleIcon, CheckIcon} from "@heroicons/react/24/outline";
+﻿'use client'
+
+import {Button} from "@heroui/button";
+import {ArrowDownCircleIcon, ArrowUpCircleIcon, CheckCircleIcon as CheckOutlined} from "@heroicons/react/24/outline";
+import {CheckCircleIcon as CheckSolid} from "@heroicons/react/24/solid";
+import {Answer, Question} from "@/lib/types";
+import {useTransition} from "react";
+import {acceptedAnswer} from "@/lib/actions/question-actions";
+import {handleError, successToast} from "@/lib/util";
 
 type Props = {
-    accepted?: boolean;
+    target: Question | Answer;
+    currentUserId?: string;
+    askerId?: string;
 }
 
-export default function VotingButtons({accepted}: Props) {
+const isTargetAnswer = (target: Question | Answer): target is Answer => {
+    return "questionId" in target;
+}
+
+export default function VotingButtons({target, currentUserId, askerId}: Props) {
+    const [pending, startTransition] = useTransition();
+    const isAnswer = isTargetAnswer(target);
+    
+    const handleAcceptAnswer = () => {
+        if (!isAnswer || askerId !== currentUserId) return;
+        startTransition(async () => {
+            const {error} = await acceptedAnswer(target.id, target.questionId);
+            if (error) handleError(error);
+            else successToast('Answer has been accepted.', 'success');
+        })
+    }
+    
     return (
         <div className='shrink-0 flex flex-col gap-3 items-center justify-start mt-4'>
             <Button
@@ -21,12 +46,20 @@ export default function VotingButtons({accepted}: Props) {
             >
                 <ArrowDownCircleIcon className='w-12'/>
             </Button>
-            {accepted && (
+            {isAnswer && (
                 <Button
                     isIconOnly
                     variant='light'
+                    className='disabled:opacity-100'
+                    isDisabled={target.accepted || askerId !== currentUserId}
+                    isLoading={pending}
+                    onPress={handleAcceptAnswer}
                 >
-                    <CheckIcon className='size-12 text-success' strokeWidth={4}/>
+                    {target.accepted ? (
+                        <CheckSolid className='text-success' />
+                    ) : (
+                        <CheckOutlined className='size-12 text-default-500'/>
+                    )}
                 </Button>
             )}
         </div>

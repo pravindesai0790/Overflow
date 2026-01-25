@@ -23,6 +23,7 @@ export type Answer = {
     accepted: boolean
     questionId: string
     author?: Profile
+    votes: number
 }
 
 export type Tag = {

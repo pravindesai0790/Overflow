@@ -111,3 +111,9 @@ export async function deleteAnswer(answerId: string, questionId: string) {
     revalidatePath(`/questions/${questionId}`);
     return result;
 }
+
+export async  function acceptedAnswer(answerId: string, questionId: string) {
+    const result = await fetchClient(`/questions/${questionId}/answers/${answerId}/accept`, 'POST');
+    revalidatePath(`/questions/${questionId}`);
+    return result;
+}
