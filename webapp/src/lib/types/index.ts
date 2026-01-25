@@ -68,3 +68,10 @@ export type Vote = {
     questionId: string
     voteValue: 1 | -1
 }
+
+export type TopUser = {
+    userId: string
+    delta: number
+}
+
+export type TopUserWithProfile = TopUser & {profile: Profile}
