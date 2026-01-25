@@ -60,6 +60,7 @@ app.MapPost("/votes", async (CastVoteDto dto, VoteDbContext db, ClaimsPrincipal 
     };
 
     await bus.PublishAsync(ReputationHelper.MakeEvent(dto.TargetUserId, reason, userId));
+    await bus.PublishAsync(new VoteCasted(dto.TargetId, dto.TargetType, dto.VoteValue));
 
     return Results.NoContent();
 }).RequireAuthorization();
