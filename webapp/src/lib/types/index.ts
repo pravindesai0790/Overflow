@@ -1,4 +1,6 @@
-﻿export type Question = {
+﻿import {number, string} from "zod";
+
+export type Question = {
     id: string
     title: string
     content: string
@@ -12,6 +14,7 @@
     answerCount: number
     answers: Answer[]
     author?: Profile
+    userVoted: number
 }
 
 export type Answer = {
@@ -24,6 +27,7 @@ export type Answer = {
     questionId: string
     author?: Profile
     votes: number
+    userVoted: number
 }
 
 export type Tag = {
@@ -49,4 +53,18 @@ export type Profile = {
 export type FetchResponse<T> = {
     data: T | null,
     error?: { message: string, status: number }
+}
+
+export type VoteRecord = {
+    targetId: string
+    targetType: 'Question' | 'Answer'
+    voteValue: number
+}
+
+export type Vote = {
+    targetId: string
+    targetType: 'Question' | 'Answer'
+    targetUserId: string
+    questionId: string
+    voteValue: 1 | -1
 }

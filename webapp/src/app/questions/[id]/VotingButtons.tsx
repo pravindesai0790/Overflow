@@ -3,9 +3,9 @@
 import {Button} from "@heroui/button";
 import {ArrowDownCircleIcon, ArrowUpCircleIcon, CheckCircleIcon as CheckOutlined} from "@heroicons/react/24/outline";
 import {CheckCircleIcon as CheckSolid} from "@heroicons/react/24/solid";
-import {Answer, Question} from "@/lib/types";
-import {useTransition} from "react";
-import {acceptedAnswer} from "@/lib/actions/question-actions";
+import {Answer, Question, Vote} from "@/lib/types";
+import {useState, useTransition} from "react";
+import {acceptedAnswer, addVote} from "@/lib/actions/question-actions";
 import {handleError, successToast} from "@/lib/util";
 
 type Props = {
@@ -20,7 +20,35 @@ const isTargetAnswer = (target: Question | Answer): target is Answer => {
 
 export default function VotingButtons({target, currentUserId, askerId}: Props) {
     const [pending, startTransition] = useTransition();
+    const [targetBtn, setTargetBtn] = useState<{type: 'up' | 'down', id: string} | null>(null);
     const isAnswer = isTargetAnswer(target);
+    
+    const canVote = isAnswer
+        ? target.userId !== currentUserId && target.userVoted === 0
+        : target.askerId !== currentUserId && target.userVoted === 0;
+    
+    const handleAddVote = (value: 1 | -1) => {
+        setTargetBtn(value == 1
+            ? {type: 'up', id: target.id}
+            : {type: 'down', id: target.id}
+        );
+        
+        startTransition(async () => {
+            const vote: Vote = {
+                targetId: target.id,
+                targetType: isAnswer ? 'Answer' : 'Question',
+                targetUserId: isAnswer ? target.userId : target.askerId,
+                voteValue: value,
+                questionId: isAnswer ? target.questionId : target.id
+            }
+            const {error} = await addVote(vote);
+            if (error) handleError(error);
+            else {
+                successToast('Vote has been registered', 'success');
+                setTargetBtn(null);
+            }
+        })
+    }
     
     const handleAcceptAnswer = () => {
         if (!isAnswer || askerId !== currentUserId) return;
@@ -36,13 +64,19 @@ export default function VotingButtons({target, currentUserId, askerId}: Props) {
             <Button
                 isIconOnly
                 variant='light'
+                isLoading={pending && targetBtn?.type === 'up' && targetBtn.id === target.id}
+                isDisabled={!canVote}
+                onPress={() => handleAddVote(1)}
             >
                 <ArrowUpCircleIcon className='w-12'/>
             </Button>
-            <span className='text-xl font-semibold'>0</span>
+            <span className='text-xl font-semibold'>{target.votes}</span>
             <Button
                 isIconOnly
                 variant='light'
+                isLoading={pending && targetBtn?.type === 'down' && targetBtn.id === target.id}
+                isDisabled={!canVote}
+                onPress={() => handleAddVote(-1)}
             >
                 <ArrowDownCircleIcon className='w-12'/>
             </Button>
@@ -52,7 +86,7 @@ export default function VotingButtons({target, currentUserId, askerId}: Props) {
                     variant='light'
                     className='disabled:opacity-100'
                     isDisabled={target.accepted || askerId !== currentUserId}
-                    isLoading={pending}
+                    isLoading={pending && !targetBtn}
                     onPress={handleAcceptAnswer}
                 >
                     {target.accepted ? (
