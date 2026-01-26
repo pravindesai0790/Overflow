@@ -30,6 +30,20 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
             query = query.Where(x => x.TagSlugs.Contains(q.Tag));
         }
 
+        query = q.Sort switch
+        {
+            "newest" => query.OrderByDescending(x => x.CreatedAt),
+            "active" => query.OrderByDescending(x => new[]
+            {
+                x.CreatedAt,
+                x.UpdatedAt ?? DateTime.MinValue,
+                x.Answers.Max(a => (DateTime?)a.CreatedAt) ?? DateTime.MinValue,
+                x.Answers.Max(a => a.UpdatedAt) ?? DateTime.MinValue
+            }.Max()),
+            "unanswered" => query.Where(x => x.AnswerCount == 0).OrderByDescending(x => x.CreatedAt),
+            _ => query.OrderByDescending(x => x.CreatedAt)
+        };
+
         query = query.OrderByDescending(x => x.CreatedAt);
 
         var result = await query.ToPaginatedListAsync(q);
