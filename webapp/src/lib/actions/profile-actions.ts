@@ -3,7 +3,7 @@ import {fetchClient} from "@/lib/fetchClient";
 import {FetchResponse, Profile, TopUser, TopUserWithProfile} from "@/lib/types";
 import {revalidatePath} from "next/cache";
 import {EditProfileSchema} from "@/lib/schemas/editProfileSchema";
-import {id} from "zod/locales";
+
 export async function getUserProfiles(sortBy?: string) {
     let url = '/profiles';
     if (sortBy) url += '?sortBy=' + sortBy;

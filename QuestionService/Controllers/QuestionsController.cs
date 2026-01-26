@@ -44,8 +44,6 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
             _ => query.OrderByDescending(x => x.CreatedAt)
         };
 
-        query = query.OrderByDescending(x => x.CreatedAt);
-
         var result = await query.ToPaginatedListAsync(q);
 
         return result;
