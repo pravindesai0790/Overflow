@@ -52,17 +52,6 @@ app.MapControllers();
 
 app.MapDefaultEndpoints();
 
-using var scope = app.Services.CreateScope();
-var services = scope.ServiceProvider; // it provides access to all services available inside our app including DBContext
-try
-{
-    var context = services.GetRequiredService<QuestionDbContext>();
-    await context.Database.MigrateAsync();
-}
-catch (Exception e)
-{
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(e, "An error occurred while migrating or seeding the DB.");
-}
+await app.MigrationDbContextAsync<QuestionDbContext>();
 
 app.Run();
