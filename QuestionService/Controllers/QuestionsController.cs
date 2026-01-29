@@ -87,8 +87,25 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
             AskerId = userId
         };
 
-        db.Questions.Add(question);
-        await db.SaveChangesAsync();
+        await using var tx = await db.Database.BeginTransactionAsync();
+        
+        try
+        {
+            db.Questions.Add(question);
+        
+            await db.SaveChangesAsync();
+            
+            await bus.PublishAsync(new QuestionCreated(question.Id, question.Title, question.Content,
+                question.CreatedAt, question.TagSlugs));
+            
+            await tx.CommitAsync(); 
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            await tx.RollbackAsync();
+            throw;
+        }
 
         var slugs = question.TagSlugs.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 
@@ -99,9 +116,6 @@ public class QuestionsController(QuestionDbContext db, IMessageBus bus, TagServi
                 .ExecuteUpdateAsync(x => x.SetProperty(t => t.UsageCount, 
                     t => t.UsageCount + 1));
         }
-        
-        await bus.PublishAsync(new QuestionCreated(question.Id, question.Title, question.Content
-            , question.CreatedAt, question.TagSlugs));
         
         return Created($"Questions/{question.Id}", question);
     }
